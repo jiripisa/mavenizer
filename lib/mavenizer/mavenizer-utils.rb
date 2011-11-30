@@ -36,26 +36,21 @@ module Mavenizer
             item == source_item
           end
         end
-        @@log.info "Copying #{files.size} files from #{source_dir_full}"
-        excludedCount=0
-        files.each do |file|
-          
-          exclude=false
-          excludes.each{ |it|
-            if !exclude 
-              relativePath = File.join(source_item, file)
-              exclude=it.match(File.join(source_item, file))!=nil
-            end
+
+        #Exclude files that match excludes pattern
+        files.reject!{|file| 
+          excludes.find{|pattern| 
+            pattern.match File.join(source_item, file)
           }
-          if !exclude
+        }
+        @@log.info "Exclusion patterns #{excludes.size}"
+        @@log.info "Copying #{files.size} files from #{source_dir_full}"
+
+        files.each do |file|
             target_file = File.join(target,source_item, file)
             FileUtils.mkdir_p(File.dirname(target_file)) unless File.exist?(File.dirname(target_file))
             FileUtils.copy_file file, target_file
-          else
-            excludedCount+=1
-          end
         end
-        @@log.info "Files copied #{files.size-excludedCount} excluded #{excludedCount}"
       end
     end
     
