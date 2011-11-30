@@ -1,0 +1,177 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                      http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <%if project.parent%>
+    <parent>
+      <groupId><%= find_project(project.parent).groupId%></groupId>
+      <artifactId><%= find_project(project.parent).artifactId%></artifactId>
+      <version><%= find_project(project.parent).version%></version>
+    </parent>
+  <%end%>
+
+  <groupId><%= project.groupId%></groupId>
+  <artifactId><%= project.artifactId%></artifactId>
+  <version><%= project.version%></version>
+  <% if project.packaging %><packaging><%= project.packaging %></packaging><% end %>
+  <name><%= project.name%></name> 
+
+  <%unless project.modules.empty?%>
+  <modules>
+    <% project.modules.each do |project_module| %>
+    <module><%= relative_path project, (find_project(project_module))%></module>
+    <% end %>
+  </modules>
+  <%end%>
+
+  <%unless project.dependencyManagementItems.empty? %>
+  <dependencyManagement>
+    <dependencies>
+    <% project.dependencyManagementItems.each do |dmItem|%>
+    <dependency>
+      <groupId><%= dmItem.groupId%></groupId>
+      <artifactId><%= dmItem.artifactId%></artifactId>
+      <version><%= dmItem.version%></version>
+      <% if dmItem.scope %><scope><%= dmItem.scope%></scope><% end %>
+      <% if dmItem.systemPath %><systemPath><%= dmItem.systemPath%></systemPath><% end %>
+      <% if dmItem.exclusions%>
+          <exclusions>
+            <% dmItem.exclusions.each do |exclusion|%>
+                <exclusion>
+                  <groupId><%= exclusion[:groupId]%></groupId>
+                  <artifactId><%= exclusion[:artifactId]%></artifactId>
+                </exclusion>
+            <% end %>
+          </exclusions>
+      <% end %>
+    </dependency>
+    <% end %>
+    </dependencies>
+  </dependencyManagement>
+  <%end%>
+
+  <%unless project.dependencies.empty?%>
+  <dependencies>
+    <% project.dependencies.each do |dependency|%>
+        <dependency>
+          <groupId><%= dependency.groupId %></groupId>
+          <artifactId><%= dependency.artifactId %></artifactId>
+          <% if dependency.version %><version><%= dependency.version %></version><% end %>
+          <% if dependency.scope %><scope><%= dependency.scope%></scope><% end %>
+          <% if dependency.systemPath %><systemPath><%= dependency.systemPath%></systemPath><% end %>
+          <% if dependency.type %><type><%= dependency.type%></type><% end %>
+          <% if dependency.exclusions%>
+              <exclusions>
+                <% dependency.exclusions.each do |exclusion|%>
+                    <exclusion>
+                      <groupId><%= exclusion[:groupId]%></groupId>
+                      <artifactId><%= exclusion[:artifactId]%></artifactId>
+                    </exclusion>
+                <% end %>
+              </exclusions>
+            <% end %>
+        </dependency>
+    <% end %>
+  </dependencies>
+  <% end %>
+
+  <build>
+    <!-- <finalName><%= project.artifactId%></finalName> -->
+    <%unless project.build_java_sources.empty?%>
+        <sourceDirectory><%= project.build_java_sources[0]%></sourceDirectory>    
+    <% end %>
+    <%unless project.build_resources.empty?%>
+        <resources>
+          <%project.build_resources.each do |resource|%>
+            <resource>
+                <directory><%=resource%></directory>
+                <%unless resource.excludes.empty?%>
+                    <excludes>
+                      <%resource.excludes.each do |exclude|%>
+                        <exclude><%=exclude%></exclude>
+                      <%end%>
+                    </excludes>
+                <%end%>
+            </resource>
+          <%end%>
+        </resources>
+    <%end%>
+    <%unless project.plugins.empty?%>
+    <plugins>
+        <%project.plugins.each do |p|%>
+            <%= plugin p%>
+        <% end %>
+    </plugins>
+    <% end %>
+  </build>
+
+  <%unless project.properties.empty?%>
+    <properties>
+      <% project.properties.each do |property|%>
+        <<%=property[:name]%>><%= property[:value]%></<%=property[:name]%>>
+      <% end %>
+    </properties>
+  <% end %>
+
+  <% unless project.profiles.empty? %>
+      <profiles>
+        <% project.profiles.each do |profile| %>
+            <profile>
+              <id><%= profile.project_id %></id>
+              <% unless profile.dependencies.empty? %>
+                  <dependencies>
+                    <% profile.dependencies.each do |dependency| %>
+                        <dependency>
+                          <groupId><%= dependency.groupId %></groupId>
+                          <artifactId><%= dependency.artifactId %></artifactId>
+                          <% if dependency.version %>
+                              <version><%= dependency.version %></version>
+                          <% end %>
+                          <% if dependency.scope %>
+                              <scope><%= dependency.scope %></scope>
+                          <% end %>
+                          <% if dependency.systemPath %>
+                              <systemPath><%= dependency.systemPath %></systemPath>
+                          <% end %>
+                          <% if dependency.type %>
+                              <type><%= dependency.type %></type>
+                          <% end %>
+                          <% if dependency.exclusions %>
+                              <exclusions>
+                                <% dependency.exclusions.each do |exclusion| %>
+                                    <exclusion>
+                                      <groupId><%= exclusion[:groupId] %></groupId>
+                                      <artifactId><%= exclusion[:artifactId] %></artifactId>
+                                    </exclusion>
+                                <% end %>
+                              </exclusions>
+                          <% end %>
+                        </dependency>
+                    <% end %>
+                  </dependencies>
+              <% end %>
+              <build>
+              <%unless profile.plugins.empty?%>
+                <plugins>
+                    <%profile.plugins.each do |p|%>
+                        <%= plugin p%>
+                    <% end %>
+                </plugins>
+                </build>
+                <%unless profile.properties.empty?%>
+                    <properties>
+                      <% profile.properties.each do |property|%>
+                        <<%=property[:name]%>><%= property[:value]%></<%=property[:name]%>>
+                      <% end %>
+                    </properties>
+                <% end %>
+              <% end %>
+            </profile>
+        <% end %>
+      </profiles>
+  <% end %>
+
+</project>
