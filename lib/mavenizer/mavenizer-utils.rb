@@ -50,6 +50,7 @@ module Mavenizer
             target_file = File.join(target,source_item, file)
             FileUtils.mkdir_p(File.dirname(target_file)) unless File.exist?(File.dirname(target_file))
             FileUtils.copy_file file, target_file
+#            FileUtils.mv(file,target_file)
         end
       end
     end

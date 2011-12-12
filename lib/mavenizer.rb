@@ -85,6 +85,7 @@ module Mavenizer
       unless ARGV.include? 'skipCopy'
         prepare_dir project
         copy_src project
+        copy_omi project
         copy_resources project
         copy_webapp project
       end
@@ -146,12 +147,21 @@ module Mavenizer
       end
     end
 
+    def copy_omi project
+      directories = project.resource_dirs + project.java_sources + project.resource_files
+      unless directories.empty?
+        #Full path to the target/src/main/java
+        target = File.join(directory(project), "src", "main", project.packaging != 'ear' ? "meta/system/omi" : "application");
+        Utils.copy_files(source_dir, project.directory, directories, target, project.resource_files_exclude){|file| file.split('.').last == 'omi'}    
+      end
+    end
+
     def copy_resources project
       directories = project.resource_dirs + project.java_sources + project.resource_files
       unless directories.empty?
         #Full path to the target/src/main/java
         target = File.join(directory(project), "src", "main", project.packaging != 'ear' ? "resources" : "application");
-        Utils.copy_files(source_dir, project.directory, directories, target, project.resource_files_exclude){|file| file.split('.').last != 'java' && file.split('.').last != 'jar' && file.scan('CVS').empty?}    
+        Utils.copy_files(source_dir, project.directory, directories, target, project.resource_files_exclude){|file| file.split('.').last != 'java' && file.split('.').last != 'jar' && file.split('.').last != 'omi' && file.scan('CVS').empty?}    
       end
     end
 
